@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>⚽ Futebol 3D - Campo Alongado</title>
+<style>
+body { margin:0; overflow:hidden; font-family:'Segoe UI',Tahoma,sans-serif; }
+#score {
+position:absolute;
+top:15px;
+left:15px;
+color:white;
+font-size:26px;
+font-weight:600;
+letter-spacing:2px;
+background:rgba(0,0,0,0.5);
+padding:6px 14px;
+border-radius:4px;
+}
+#info{
+position:absolute;
+bottom:20px;
+left:20px;
+color:#ddd;
+background:rgba(0,20,30,0.7);
+padding:12px 24px;
+border-radius:40px;
+font-size:18px;
+border:1px solid #00aaff;
+backdrop-filter:blur(2px);
+letter-spacing:1px;
+}
+#info kbd {
+background:#222;
+color:#0ff;
+padding:4px 8px;
+border-radius:8px;
+margin:0 4px;
+border:1px solid cyan;
+}
+</style>
+</head>
+<body>
+
+<div id="score">⚽ 0 🏆 0 🥅</div>
+<div id="info"><kbd>WASD</kbd> correr · <kbd>ESPAÇO</kbd> chutar forte</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+// --- CENA E CÂMERA ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB); // céu azul claro
+scene.fog = new THREE.Fog(0x87CEEB, 40, 100);
+
+const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 22, 35);
+camera.lookAt(0, 2, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// --- ILUMINAÇÃO ---
+const sunLight = new THREE.DirectionalLight(0xfff5d1, 1.3);
+sunLight.position.set(20, 40, 20);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 1024;
+sunLight.shadow.mapSize.height = 1024;
+sunLight.shadow.camera.near = 10;
+sunLight.shadow.camera.far = 80;
+sunLight.shadow.camera.left = -40;
+sunLight.shadow.camera.right = 40;
+sunLight.shadow.camera.top = 30;
+sunLight.shadow.camera.bottom = -30;
+scene.add(sunLight);
+
+const fillLight = new THREE.AmbientLight(0x404060);
+scene.add(fillLight);
+
+// --- CAMPO PROFISSIONAL COM MARCAÇÕES (AGORA MAIOR VERTICALMENTE) ---
+const fieldW = 70;
+const fieldD = 100;        // profundidade (z) AUMENTADA de 30 para 50
+const grassMat = new THREE.MeshStandardMaterial({ color: 0x1e8a4a, roughness: 0.7 });
+const fieldGround = new THREE.Mesh(
+  new THREE.PlaneGeometry(fieldW, fieldD),
+  grassMat
+);
+fieldGround.rotation.x = -Math.PI/2;
+fieldGround.receiveShadow = true;
+fieldGround.position.y = 0;
+scene.add(fieldGround);
+
+// --- LINHAS DO CAMPO ---
+const lineColor = 0xffffff;
+const lineMaterial = new THREE.LineBasicMaterial({ color: lineColor });
+
+// Linhas de perímetro
+const perimeterPoints = [
+  new THREE.Vector3(-fieldW/2, 0.02, -fieldD/2),
+  new THREE.Vector3( fieldW/2, 0.02, -fieldD/2),
+  new THREE.Vector3( fieldW/2, 0.02,  fieldD/2),
+  new THREE.Vector3(-fieldW/2, 0.02,  fieldD/2),
+  new THREE.Vector3(-fieldW/2, 0.02, -fieldD/2)
+];
+const perimeterGeo = new THREE.BufferGeometry().setFromPoints(perimeterPoints);
+const perimeterLine = new THREE.Line(perimeterGeo, lineMaterial);
+scene.add(perimeterLine);
+
+// Linha central
+const centerLineGeo = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(-fieldW/2, 0.02, 0),
+  new THREE.Vector3( fieldW/2, 0.02, 0)
+]);
+const centerLine = new THREE.Line(centerLineGeo, lineMaterial);
+scene.add(centerLine);
+
+// Círculo central (agora maior proporcionalmente)
+const circlePoints = [];
+const radius = 6; // aumentado um pouco
+const segments = 48;
+for (let i = 0; i <= segments; i++) {
+  const angle = (i / segments) * Math.PI * 2;
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  circlePoints.push(new THREE.Vector3(x, 0.02, z));
+}
+const circleGeo = new THREE.BufferGeometry().setFromPoints(circlePoints);
+const circleLine = new THREE.Line(circleGeo, lineMaterial);
+scene.add(circleLine);
+
+// Área grande (adaptada para o campo mais longo)
+function createPenaltyArea(centerX, sideZ) {
+  const w = 16, h = 8; // área maior (largura 16, profundidade 8)
+  const direction = sideZ > 0 ? -h : h;
+  const pts = [
+    new THREE.Vector3(centerX - w/2, 0.02, sideZ),
+    new THREE.Vector3(centerX + w/2, 0.02, sideZ),
+    new THREE.Vector3(centerX + w/2, 0.02, sideZ + direction),
+    new THREE.Vector3(centerX - w/2, 0.02, sideZ + direction),
+    new THREE.Vector3(centerX - w/2, 0.02, sideZ)
+  ];
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  return new THREE.Line(geo, lineMaterial);
+}
+scene.add(createPenaltyArea(0, -fieldD/2 + 0.2)); // fundo
+scene.add(createPenaltyArea(0, fieldD/2 - 0.2));  // frente
+
+// Marca do pênalti (ajustada para nova distância)
+const spotMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const spot1 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10), spotMat);
+spot1.position.set(0, 0.03, -fieldD/2 + 9);
+scene.add(spot1);
+const spot2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10), spotMat);
+spot2.position.set(0, 0.03, fieldD/2 - 9);
+scene.add(spot2);
+
+// --- GOLS REFINADOS (posicionados nas novas extremidades) ---
+function createGoal(side) {
+  const group = new THREE.Group();
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0 });
+  const width = 8;
+  const height = 4;
+  const zPos = side * (fieldD/2 + 0.3); // side: -1 fundo, +1 frente
+  
+  // postes (verticais)
+  const postLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, height), whiteMat);
+  postLeft.position.set(-width/2, height/2, zPos);
+  postLeft.castShadow = true;
+  group.add(postLeft);
+  
+  const postRight = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, height), whiteMat);
+  postRight.position.set(width/2, height/2, zPos);
+  postRight.castShadow = true;
+  group.add(postRight);
+  
+  // travessão (horizontal)
+  const crossbar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, width), whiteMat);
+  crossbar.rotation.z = Math.PI/2;
+  crossbar.position.set(0, height, zPos);
+  crossbar.castShadow = true;
+  group.add(crossbar);
+  
+  // rede
+  const netMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, transparent: true, opacity: 0.3 });
+  const netBack = new THREE.Mesh(new THREE.BoxGeometry(width-0.5, height-0.5, 0.2), netMat);
+  netBack.position.set(0, height/2, zPos + side * 0.6);
+  netBack.castShadow = false;
+  group.add(netBack);
+  
+  return group;
+}
+const goal1 = createGoal(-1); // fundo (gol ativo)
+goal1.position.y = 0;
+scene.add(goal1);
+const goal2 = createGoal(1);  // frente (apenas visual)
+goal2.position.y = 0;
+scene.add(goal2);
+
+// --- JOGADOR HUMANIZADO ---
+const playerGroup = new THREE.Group();
+
+// corpo
+const torsoGeo = new THREE.CylinderGeometry(0.9, 0.9, 2.2);
+const torsoMat = new THREE.MeshStandardMaterial({ color: 0x3a6ea5 });
+const torso = new THREE.Mesh(torsoGeo, torsoMat);
+torso.position.y = 1.1;
+torso.castShadow = true;
+torso.receiveShadow = true;
+playerGroup.add(torso);
+
+// cabeça
+const headGeo = new THREE.SphereGeometry(0.7);
+const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+const head = new THREE.Mesh(headGeo, headMat);
+head.position.y = 2.2 + 0.5;
+head.castShadow = true;
+head.receiveShadow = true;
+playerGroup.add(head);
+
+// braços
+const armMat = new THREE.MeshStandardMaterial({ color: 0x2a5a8c });
+const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4), armMat);
+leftArm.position.set(-1.0, 1.8, 0);
+leftArm.rotation.z = 0.2;
+leftArm.rotation.x = 0.1;
+leftArm.castShadow = true;
+playerGroup.add(leftArm);
+
+const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4), armMat);
+rightArm.position.set(1.0, 1.8, 0);
+rightArm.rotation.z = -0.2;
+rightArm.rotation.x = -0.1;
+rightArm.castShadow = true;
+playerGroup.add(rightArm);
+
+// pernas
+const legMat = new THREE.MeshStandardMaterial({ color: 0x1a3a5a });
+const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.6), legMat);
+leftLeg.position.set(-0.5, 0.8, 0);
+leftLeg.castShadow = true;
+playerGroup.add(leftLeg);
+
+const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.6), legMat);
+rightLeg.position.set(0.5, 0.8, 0);
+rightLeg.castShadow = true;
+playerGroup.add(rightLeg);
+
+playerGroup.position.set(0, 0, 8); // começa mais avançado devido ao campo maior
+playerGroup.castShadow = true;
+playerGroup.receiveShadow = true;
+scene.add(playerGroup);
+
+// --- BOLA ---
+const ballGroup = new THREE.Group();
+const ballMain = new THREE.Mesh(
+  new THREE.SphereGeometry(0.9, 32, 32),
+  new THREE.MeshStandardMaterial({ color: 0xffffff })
+);
+ballMain.castShadow = true;
+ballMain.receiveShadow = true;
+ballGroup.add(ballMain);
+
+// detalhes da bola
+const stripeMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+const stripe1 = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 16, 64), stripeMat);
+stripe1.rotation.x = Math.PI/2;
+stripe1.scale.set(1, 1, 0.2);
+ballGroup.add(stripe1);
+const stripe2 = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 16, 64), stripeMat);
+stripe2.rotation.z = Math.PI/2;
+stripe2.scale.set(1, 1, 0.2);
+ballGroup.add(stripe2);
+
+ballGroup.position.set(0, 0.9, 3);
+scene.add(ballGroup);
+
+// --- VARIÁVEIS DO JOGO ---
+let ballVelocity = new THREE.Vector3();
+let score = 0;
+const scoreEl = document.getElementById("score");
+let hasBall = false;
+let moveDirection = new THREE.Vector3();
+
+// Controles
+const keys = {};
+document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+// Movimentação
+const playerSpeed = 14; // um pouco mais rápido para campo maior
+const clock = new THREE.Clock();
+
+function updatePlayer(delta) {
+
+  const move = new THREE.Vector3();
+
+  if (keys["KeyW"]) move.z -= 1;
+  if (keys["KeyS"]) move.z += 1;
+  if (keys["KeyA"]) move.x -= 1;
+  if (keys["KeyD"]) move.x += 1;
+
+  if (move.length() > 0) {
+    move.normalize();
+    moveDirection.copy(move);
+  }
+
+  const newX = playerGroup.position.x + move.x * playerSpeed * delta;
+  const newZ = playerGroup.position.z + move.z * playerSpeed * delta;
+
+  playerGroup.position.x = Math.max(-fieldW/2 + 1.5, Math.min(fieldW/2 - 1.5, newX));
+  playerGroup.position.z = Math.max(-fieldD/2 + 1.5, Math.min(fieldD/2 - 1.5, newZ));
+
+  // Condução da bola
+  if (hasBall) {
+    const offset = moveDirection.clone().multiplyScalar(1.6);
+    ballGroup.position.x = playerGroup.position.x + offset.x;
+    ballGroup.position.z = playerGroup.position.z + offset.z;
+    ballVelocity.set(0,0,0);
+  }
+
+  // câmera
+  camera.position.x = playerGroup.position.x;
+  camera.position.z = playerGroup.position.z + 18;
+  camera.position.y = 20;
+  camera.lookAt(playerGroup.position.x, 2, playerGroup.position.z - 6);
+}
+
+function updateBall(delta) {
+
+  const dist = playerGroup.position.distanceTo(ballGroup.position);
+
+  // pega a bola se estiver perto
+  if (dist < 2 && !hasBall) {
+    hasBall = true;
+  }
+
+  // chute
+  if (hasBall && keys["Space"]) {
+    hasBall = false;
+
+    const shootDir = moveDirection.clone();
+    if (shootDir.length() === 0) shootDir.z = -1;
+
+    shootDir.normalize();
+    shootDir.y = 0.15;
+
+    ballVelocity.copy(shootDir.multiplyScalar(30));
+  }
+
+  // 🔥 CHUTE FORTE (X)
+// 🔥 CHUTE FORTE (X)
+if (hasBall && keys["KeyX"]) {
+  hasBall = false;
+
+  const strongDir = moveDirection.clone();
+
+  // Se estiver parado, chuta pra frente
+  if (strongDir.length() === 0) {
+    strongDir.z = -1;
+  }
+
+  strongDir.normalize();
+  strongDir.y = 0.25;
+
+  ballVelocity.copy(strongDir.multiplyScalar(55));
+}
+
+  // física normal se não estiver com a bola
+  if (!hasBall) {
+    ballGroup.position.addScaledVector(ballVelocity, delta);
+    ballVelocity.multiplyScalar(0.98);
+  }
+
+  // limites laterais
+  if (ballGroup.position.x < -fieldW/2 + 0.6) {
+    ballGroup.position.x = -fieldW/2 + 0.6;
+    ballVelocity.x *= -0.5;
+  }
+  if (ballGroup.position.x > fieldW/2 - 0.6) {
+    ballGroup.position.x = fieldW/2 - 0.6;
+    ballVelocity.x *= -0.5;
+  }
+  if (ballGroup.position.z > fieldD/2 - 0.6) {
+    ballGroup.position.z = fieldD/2 - 0.6;
+    ballVelocity.z *= -0.5;
+  }
+
+  // gol
+  if (ballGroup.position.z < -fieldD/2 + 0.6) {
+    if (ballGroup.position.x > -4 && ballGroup.position.x < 4) {
+      score++;
+      scoreEl.innerHTML = `${score} x 0`;
+      resetBall();
+    } else {
+      ballGroup.position.z = -fieldD/2 + 0.6;
+      ballVelocity.z *= -0.5;
+    }
+  }
+
+  ballGroup.position.y = 0.9;
+}
+
+function resetBall() {
+  ballGroup.position.set(0, 0.9, 3);
+  ballVelocity.set(0,0,0);
+}
+
+// Animação simples para as pernas
+let legAngle = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.1);
+  
+  updatePlayer(delta);
+  updateBall(delta);
+  
+  // animação das pernas ao correr
+  if (keys["KeyW"] || keys["KeyS"] || keys["KeyA"] || keys["KeyD"]) {
+    legAngle += delta * 10;
+    playerGroup.children[4].rotation.x = Math.sin(legAngle) * 0.5; // perna esquerda
+    playerGroup.children[5].rotation.x = Math.sin(legAngle + Math.PI) * 0.5; // perna direita
+  } else {
+    legAngle = 0;
+    playerGroup.children[4].rotation.x = 0;
+    playerGroup.children[5].rotation.x = 0;
+  }
+  
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener("resize", ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
