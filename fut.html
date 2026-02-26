@@ -2,25 +2,74 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>⚽ Futebol 3D - Campo Alongado</title>
+<title>⚽ Futebol 3D - Tela Dividida</title>
 <style>
 body { margin:0; overflow:hidden; font-family:'Segoe UI',Tahoma,sans-serif; }
-#score {
+#score-container {
 position:absolute;
 top:15px;
-left:15px;
-color:white;
-font-size:26px;
-font-weight:600;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:30px;
+background:rgba(0,0,0,0.6);
+padding:10px 30px;
+border-radius:50px;
+border:2px solid rgba(255,255,255,0.3);
+backdrop-filter:blur(5px);
+z-index:10;
+align-items:center;
+}
+.score-box {
+display:flex;
+flex-direction:column;
+align-items:center;
+min-width:100px;
+}
+.score-label {
+font-size:16px;
+color:#aaa;
 letter-spacing:2px;
-background:rgba(0,0,0,0.5);
-padding:6px 14px;
-border-radius:4px;
+}
+.score-value {
+font-size:48px;
+font-weight:bold;
+color:white;
+line-height:1.2;
+text-shadow:2px 2px 4px black;
+}
+.blue-score .score-value {
+color:#3a6ea5;
+text-shadow:0 0 10px #3a6ea5;
+}
+.red-score .score-value {
+color:#cc3333;
+text-shadow:0 0 10px #cc3333;
+}
+.score-divider {
+font-size:48px;
+color:white;
+font-weight:100;
+opacity:0.5;
+}
+#timer {
+font-size:32px;
+font-weight:bold;
+color:white;
+background:rgba(0,0,0,0.6);
+padding:8px 25px;
+border-radius:40px;
+border:2px solid #00aaff;
+backdrop-filter:blur(5px);
+letter-spacing:3px;
+font-family:monospace;
+z-index:10;
 }
 #info{
 position:absolute;
 bottom:20px;
-left:20px;
+left:50%;
+transform:translateX(-50%);
 color:#ddd;
 background:rgba(0,20,30,0.7);
 padding:12px 24px;
@@ -29,6 +78,8 @@ font-size:18px;
 border:1px solid #00aaff;
 backdrop-filter:blur(2px);
 letter-spacing:1px;
+z-index:10;
+white-space:nowrap;
 }
 #info kbd {
 background:#222;
@@ -38,12 +89,233 @@ border-radius:8px;
 margin:0 4px;
 border:1px solid cyan;
 }
+#split-screen {
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:flex;
+pointer-events:none;
+z-index:5;
+}
+.split-left, .split-right {
+flex:1;
+height:100%;
+border:2px solid rgba(255,255,255,0.3);
+box-sizing:border-box;
+pointer-events:none;
+}
+.split-left {
+border-right:1px solid rgba(255,255,255,0.5);
+}
+.split-right {
+border-left:1px solid rgba(255,255,255,0.5);
+}
+.player-label {
+position:absolute;
+top:20px;
+font-size:20px;
+font-weight:bold;
+text-shadow:2px 2px 4px black;
+z-index:20;
+}
+#label-left {
+left:20px;
+color:#3a6ea5;
+}
+#label-right {
+right:20px;
+color:#cc3333;
+}
+/* LOBBY STYLES */
+#lobby {
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background: linear-gradient(135deg, #1a472a 0%, #2d5a3a 100%);
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index:100;
+font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+.lobby-content {
+background: rgba(255,255,255,0.1);
+backdrop-filter: blur(10px);
+padding: 50px 80px;
+border-radius: 30px;
+border: 2px solid rgba(255,255,255,0.3);
+text-align: center;
+box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.lobby-title {
+font-size: 72px;
+color: white;
+text-shadow: 3px 3px 0 #2a5a3a, 6px 6px 0 rgba(0,0,0,0.2);
+margin-bottom: 20px;
+letter-spacing: 4px;
+}
+.lobby-subtitle {
+font-size: 24px;
+color: #ddd;
+margin-bottom: 40px;
+}
+.lobby-players {
+display: flex;
+gap: 60px;
+margin-bottom: 50px;
+}
+.lobby-player {
+text-align: center;
+}
+.lobby-player-icon {
+font-size: 80px;
+margin-bottom: 10px;
+}
+.lobby-player-name {
+font-size: 28px;
+color: white;
+font-weight: bold;
+}
+.lobby-player-controls {
+font-size: 18px;
+color: #aaffaa;
+margin-top: 10px;
+}
+.lobby-player-controls kbd {
+background: #333;
+padding: 4px 8px;
+border-radius: 6px;
+color: #0ff;
+margin: 0 2px;
+}
+#start-button {
+background: #00aa44;
+color: white;
+font-size: 32px;
+font-weight: bold;
+padding: 20px 60px;
+border: none;
+border-radius: 60px;
+cursor: pointer;
+box-shadow: 0 10px 0 #006622, 0 10px 20px rgba(0,0,0,0.3);
+transition: all 0.1s ease;
+margin-top: 20px;
+letter-spacing: 2px;
+}
+#start-button:hover {
+background: #00cc55;
+transform: translateY(-2px);
+box-shadow: 0 12px 0 #006622, 0 15px 25px rgba(0,0,0,0.3);
+}
+#start-button:active {
+transform: translateY(5px);
+box-shadow: 0 5px 0 #006622, 0 10px 20px rgba(0,0,0,0.3);
+}
+/* WINNER MESSAGE */
+#winner-message {
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%, -50%);
+background:rgba(0,0,0,0.9);
+color:white;
+font-size:48px;
+font-weight:bold;
+padding:40px 80px;
+border-radius:60px;
+border:4px solid gold;
+z-index:200;
+display:none;
+text-align:center;
+box-shadow:0 0 50px rgba(255,215,0,0.5);
+backdrop-filter:blur(10px);
+white-space:nowrap;
+}
+.winner-blue {
+color:#3a6ea5;
+text-shadow:0 0 20px #3a6ea5;
+}
+.winner-red {
+color:#cc3333;
+text-shadow:0 0 20px #cc3333;
+}
+#winner-subtitle {
+font-size:24px;
+color:#ddd;
+margin-top:20px;
+}
 </style>
 </head>
 <body>
 
-<div id="score">⚽ 0 🏆 0 🥅</div>
-<div id="info"><kbd>WASD</kbd> correr · <kbd>ESPAÇO</kbd> chutar forte</div>
+<!-- LOBBY -->
+<div id="lobby">
+  <div class="lobby-content">
+    <div class="lobby-title">⚽ FUTEBOL 3D</div>
+    <div class="lobby-subtitle">Tela Dividida · 2 Minutos</div>
+    
+    <div class="lobby-players">
+      <div class="lobby-player">
+        <div class="lobby-player-icon">🔵</div>
+        <div class="lobby-player-name">JOGADOR 1</div>
+        <div class="lobby-player-controls">
+          <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> mover<br>
+          <kbd>F</kbd> toque · <kbd>G</kbd> chute forte
+        </div>
+      </div>
+      <div class="lobby-player">
+        <div class="lobby-player-icon">🔴</div>
+        <div class="lobby-player-name">JOGADOR 2</div>
+        <div class="lobby-player-controls">
+          <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> mover<br>
+          <kbd>1</kbd> toque · <kbd>2</kbd> chute forte
+        </div>
+      </div>
+    </div>
+    
+    <button id="start-button">▶ INICIAR JOGO</button>
+  </div>
+</div>
+
+<!-- WINNER MESSAGE -->
+<div id="winner-message">
+  <div id="winner-text">🏆 VENCEDOR 🏆</div>
+  <div id="winner-subtitle"></div>
+</div>
+
+<!-- GAME UI -->
+<div style="position:absolute; top:15px; left:0; width:100%; display:flex; justify-content:center; z-index:10; pointer-events:none;">
+  <div id="score-container">
+    <div class="score-box blue-score">
+      <div class="score-label">AZUL</div>
+      <div class="score-value" id="score-blue">0</div>
+    </div>
+    <div class="score-divider">⚽</div>
+    <div class="score-box red-score">
+      <div class="score-label">VERMELHO</div>
+      <div class="score-value" id="score-red">0</div>
+    </div>
+  </div>
+</div>
+
+<div style="position:absolute; top:100px; left:50%; transform:translateX(-50%); z-index:10; pointer-events:none;">
+  <div id="timer">02:00</div>
+</div>
+
+<div id="info"><kbd>WASD</kbd> azul · <kbd>SETAS</kbd> vermelho · <kbd>F</kbd> toque (azul) · <kbd>G</kbd> chute forte (azul) · <kbd>1</kbd> toque (vermelho) · <kbd>2</kbd> chute forte (vermelho)</div>
+
+<div id="split-screen">
+  <div class="split-left"></div>
+  <div class="split-right"></div>
+</div>
+
+<div id="label-left" class="player-label">🔵 JOGADOR 1 (AZUL)</div>
+<div id="label-right" class="player-label">🔴 JOGADOR 2 (VERMELHO)</div>
 
 <script type="importmap">
 {
@@ -56,14 +328,37 @@ border:1px solid cyan;
 <script type="module">
 import * as THREE from "three";
 
-// --- CENA E CÂMERA ---
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87CEEB); // céu azul claro
-scene.fog = new THREE.Fog(0x87CEEB, 40, 100);
+// --- ELEMENTOS DA UI ---
+const lobby = document.getElementById('lobby');
+const startButton = document.getElementById('start-button');
+const scoreBlueEl = document.getElementById('score-blue');
+const scoreRedEl = document.getElementById('score-red');
+const timerEl = document.getElementById('timer');
+const winnerMessage = document.getElementById('winner-message');
+const winnerText = document.getElementById('winner-text');
+const winnerSubtitle = document.getElementById('winner-subtitle');
 
-const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 200);
-camera.position.set(0, 22, 35);
-camera.lookAt(0, 2, 0);
+// --- VARIÁVEIS DO JOGO ---
+let gameActive = false;
+let gameTime = 120; // 2 minutos em segundos
+let timerInterval = null;
+let scoreBlue = 0;
+let scoreRed = 0;
+
+// --- CENA E CÂMERAS ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+scene.fog = new THREE.Fog(0x87CEEB, 60, 150);
+
+// Câmera do Jogador 1 (Azul) - lado esquerdo da tela
+const camera1 = new THREE.PerspectiveCamera(65, (innerWidth/2)/innerHeight, 0.1, 200);
+camera1.position.set(0, 12, 20);
+camera1.lookAt(0, 2, 0);
+
+// Câmera do Jogador 2 (Vermelho) - lado direito da tela
+const camera2 = new THREE.PerspectiveCamera(65, (innerWidth/2)/innerHeight, 0.1, 200);
+camera2.position.set(0, 12, 20);
+camera2.lookAt(0, 2, 0);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
@@ -78,19 +373,19 @@ sunLight.castShadow = true;
 sunLight.shadow.mapSize.width = 1024;
 sunLight.shadow.mapSize.height = 1024;
 sunLight.shadow.camera.near = 10;
-sunLight.shadow.camera.far = 80;
-sunLight.shadow.camera.left = -40;
-sunLight.shadow.camera.right = 40;
-sunLight.shadow.camera.top = 30;
-sunLight.shadow.camera.bottom = -30;
+sunLight.shadow.camera.far = 120;
+sunLight.shadow.camera.left = -50;
+sunLight.shadow.camera.right = 50;
+sunLight.shadow.camera.top = 50;
+sunLight.shadow.camera.bottom = -50;
 scene.add(sunLight);
 
 const fillLight = new THREE.AmbientLight(0x404060);
 scene.add(fillLight);
 
-// --- CAMPO PROFISSIONAL COM MARCAÇÕES (AGORA MAIOR VERTICALMENTE) ---
+// --- CAMPO PROFISSIONAL COM MARCAÇÕES ---
 const fieldW = 70;
-const fieldD = 100;        // profundidade (z) AUMENTADA de 30 para 50
+const fieldD = 100;
 const grassMat = new THREE.MeshStandardMaterial({ color: 0x1e8a4a, roughness: 0.7 });
 const fieldGround = new THREE.Mesh(
   new THREE.PlaneGeometry(fieldW, fieldD),
@@ -125,9 +420,9 @@ const centerLineGeo = new THREE.BufferGeometry().setFromPoints([
 const centerLine = new THREE.Line(centerLineGeo, lineMaterial);
 scene.add(centerLine);
 
-// Círculo central (agora maior proporcionalmente)
+// Círculo central
 const circlePoints = [];
-const radius = 6; // aumentado um pouco
+const radius = 6;
 const segments = 48;
 for (let i = 0; i <= segments; i++) {
   const angle = (i / segments) * Math.PI * 2;
@@ -139,9 +434,9 @@ const circleGeo = new THREE.BufferGeometry().setFromPoints(circlePoints);
 const circleLine = new THREE.Line(circleGeo, lineMaterial);
 scene.add(circleLine);
 
-// Área grande (adaptada para o campo mais longo)
+// Área grande
 function createPenaltyArea(centerX, sideZ) {
-  const w = 16, h = 8; // área maior (largura 16, profundidade 8)
+  const w = 16, h = 8;
   const direction = sideZ > 0 ? -h : h;
   const pts = [
     new THREE.Vector3(centerX - w/2, 0.02, sideZ),
@@ -153,10 +448,10 @@ function createPenaltyArea(centerX, sideZ) {
   const geo = new THREE.BufferGeometry().setFromPoints(pts);
   return new THREE.Line(geo, lineMaterial);
 }
-scene.add(createPenaltyArea(0, -fieldD/2 + 0.2)); // fundo
-scene.add(createPenaltyArea(0, fieldD/2 - 0.2));  // frente
+scene.add(createPenaltyArea(0, -fieldD/2 + 0.2));
+scene.add(createPenaltyArea(0, fieldD/2 - 0.2));
 
-// Marca do pênalti (ajustada para nova distância)
+// Marca do pênalti
 const spotMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
 const spot1 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10), spotMat);
 spot1.position.set(0, 0.03, -fieldD/2 + 9);
@@ -165,15 +460,14 @@ const spot2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10), spotMat);
 spot2.position.set(0, 0.03, fieldD/2 - 9);
 scene.add(spot2);
 
-// --- GOLS REFINADOS (posicionados nas novas extremidades) ---
+// --- GOLS ---
 function createGoal(side) {
   const group = new THREE.Group();
   const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0 });
   const width = 8;
   const height = 4;
-  const zPos = side * (fieldD/2 + 0.3); // side: -1 fundo, +1 frente
+  const zPos = side * (fieldD/2 + 0.3);
   
-  // postes (verticais)
   const postLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, height), whiteMat);
   postLeft.position.set(-width/2, height/2, zPos);
   postLeft.castShadow = true;
@@ -184,14 +478,12 @@ function createGoal(side) {
   postRight.castShadow = true;
   group.add(postRight);
   
-  // travessão (horizontal)
   const crossbar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, width), whiteMat);
   crossbar.rotation.z = Math.PI/2;
   crossbar.position.set(0, height, zPos);
   crossbar.castShadow = true;
   group.add(crossbar);
   
-  // rede
   const netMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, transparent: true, opacity: 0.3 });
   const netBack = new THREE.Mesh(new THREE.BoxGeometry(width-0.5, height-0.5, 0.2), netMat);
   netBack.position.set(0, height/2, zPos + side * 0.6);
@@ -200,66 +492,90 @@ function createGoal(side) {
   
   return group;
 }
-const goal1 = createGoal(-1); // fundo (gol ativo)
+const goal1 = createGoal(-1);
 goal1.position.y = 0;
 scene.add(goal1);
-const goal2 = createGoal(1);  // frente (apenas visual)
+const goal2 = createGoal(1);
 goal2.position.y = 0;
 scene.add(goal2);
 
-// --- JOGADOR HUMANIZADO ---
-const playerGroup = new THREE.Group();
+// --- FUNÇÃO PARA CRIAR JOGADOR ---
+function createPlayer(color, position) {
+  const group = new THREE.Group();
 
-// corpo
-const torsoGeo = new THREE.CylinderGeometry(0.9, 0.9, 2.2);
-const torsoMat = new THREE.MeshStandardMaterial({ color: 0x3a6ea5 });
-const torso = new THREE.Mesh(torsoGeo, torsoMat);
-torso.position.y = 1.1;
-torso.castShadow = true;
-torso.receiveShadow = true;
-playerGroup.add(torso);
+  // Tronco
+  const torso = new THREE.Mesh(
+    new THREE.BoxGeometry(1.6, 2.4, 0.9),
+    new THREE.MeshStandardMaterial({ color: color })
+  );
+  torso.position.y = 2.2;
+  torso.castShadow = true;
+  group.add(torso);
 
-// cabeça
-const headGeo = new THREE.SphereGeometry(0.7);
-const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
-const head = new THREE.Mesh(headGeo, headMat);
-head.position.y = 2.2 + 0.5;
-head.castShadow = true;
-head.receiveShadow = true;
-playerGroup.add(head);
+  // Cabeça
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.6, 32, 32),
+    new THREE.MeshStandardMaterial({ color: 0xffccaa })
+  );
+  head.position.y = 3.8;
+  head.castShadow = true;
+  group.add(head);
 
-// braços
-const armMat = new THREE.MeshStandardMaterial({ color: 0x2a5a8c });
-const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4), armMat);
-leftArm.position.set(-1.0, 1.8, 0);
-leftArm.rotation.z = 0.2;
-leftArm.rotation.x = 0.1;
-leftArm.castShadow = true;
-playerGroup.add(leftArm);
+  // BRAÇOS
+  const armColor = color === 0x3a6ea5 ? 0x2a5a8c : 0x8b2a2a;
 
-const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4), armMat);
-rightArm.position.set(1.0, 1.8, 0);
-rightArm.rotation.z = -0.2;
-rightArm.rotation.x = -0.1;
-rightArm.castShadow = true;
-playerGroup.add(rightArm);
+  const leftArm = new THREE.Group();
+  const leftArmMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 1.6, 16),
+    new THREE.MeshStandardMaterial({ color: armColor })
+  );
+  leftArmMesh.position.y = -0.8;
+  leftArm.add(leftArmMesh);
+  leftArm.position.set(-1.1, 3, 0);
+  group.add(leftArm);
 
-// pernas
-const legMat = new THREE.MeshStandardMaterial({ color: 0x1a3a5a });
-const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.6), legMat);
-leftLeg.position.set(-0.5, 0.8, 0);
-leftLeg.castShadow = true;
-playerGroup.add(leftLeg);
+  const rightArm = new THREE.Group();
+  const rightArmMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 1.6, 16),
+    new THREE.MeshStandardMaterial({ color: armColor })
+  );
+  rightArmMesh.position.y = -0.8;
+  rightArm.add(rightArmMesh);
+  rightArm.position.set(1.1, 3, 0);
+  group.add(rightArm);
 
-const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.6), legMat);
-rightLeg.position.set(0.5, 0.8, 0);
-rightLeg.castShadow = true;
-playerGroup.add(rightLeg);
+  // PERNAS
+  const legMaterial = new THREE.MeshStandardMaterial({ color: color === 0x3a6ea5 ? 0x1a3a5a : 0x5a1a1a });
 
-playerGroup.position.set(0, 0, 8); // começa mais avançado devido ao campo maior
-playerGroup.castShadow = true;
-playerGroup.receiveShadow = true;
-scene.add(playerGroup);
+  const leftLeg = new THREE.Group();
+  const leftLegMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.35, 1.8, 16),
+    legMaterial
+  );
+  leftLegMesh.position.y = -0.9;
+  leftLeg.add(leftLegMesh);
+  leftLeg.position.set(-0.5, 1.2, 0);
+  group.add(leftLeg);
+
+  const rightLeg = new THREE.Group();
+  const rightLegMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.35, 1.8, 16),
+    legMaterial
+  );
+  rightLegMesh.position.y = -0.9;
+  rightLeg.add(rightLegMesh);
+  rightLeg.position.set(0.5, 1.2, 0);
+  group.add(rightLeg);
+
+  group.position.copy(position);
+  return group;
+}
+
+// --- JOGADORES ---
+const player1 = createPlayer(0x3a6ea5, new THREE.Vector3(-10, 0, 20)); // Azul (WASD)
+const player2 = createPlayer(0xcc3333, new THREE.Vector3(10, 0, -20)); // Vermelho (SETAS)
+scene.add(player1);
+scene.add(player2);
 
 // --- BOLA ---
 const ballGroup = new THREE.Group();
@@ -271,7 +587,6 @@ ballMain.castShadow = true;
 ballMain.receiveShadow = true;
 ballGroup.add(ballMain);
 
-// detalhes da bola
 const stripeMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
 const stripe1 = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 16, 64), stripeMat);
 stripe1.rotation.x = Math.PI/2;
@@ -282,107 +597,135 @@ stripe2.rotation.z = Math.PI/2;
 stripe2.scale.set(1, 1, 0.2);
 ballGroup.add(stripe2);
 
-ballGroup.position.set(0, 0.9, 3);
+ballGroup.position.set(0, 0.9, 0);
 scene.add(ballGroup);
 
 // --- VARIÁVEIS DO JOGO ---
 let ballVelocity = new THREE.Vector3();
-let score = 0;
-const scoreEl = document.getElementById("score");
-let hasBall = false;
-let moveDirection = new THREE.Vector3();
+let playerWithBall = null; // null, 1 ou 2
 
 // Controles
 const keys = {};
-document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keydown", e => {
+  keys[e.code] = true;
+  // Impede a página de rolar com as setas
+  if (e.code.startsWith("Arrow")) {
+    e.preventDefault();
+  }
+});
 document.addEventListener("keyup", e => keys[e.code] = false);
 
-// Movimentação
-const playerSpeed = 14; // um pouco mais rápido para campo maior
+const playerSpeed = 14;
 const clock = new THREE.Clock();
 
-function updatePlayer(delta) {
-
+function updatePlayer(player, keysMap, delta) {
   const move = new THREE.Vector3();
 
-  if (keys["KeyW"]) move.z -= 1;
-  if (keys["KeyS"]) move.z += 1;
-  if (keys["KeyA"]) move.x -= 1;
-  if (keys["KeyD"]) move.x += 1;
+  if (keys[keysMap.up]) move.z -= 1;
+  if (keys[keysMap.down]) move.z += 1;
+  if (keys[keysMap.left]) move.x -= 1;
+  if (keys[keysMap.right]) move.x += 1;
 
   if (move.length() > 0) {
     move.normalize();
-    moveDirection.copy(move);
+    player.userData.moveDir = move.clone();
   }
 
-  const newX = playerGroup.position.x + move.x * playerSpeed * delta;
-  const newZ = playerGroup.position.z + move.z * playerSpeed * delta;
-
-  playerGroup.position.x = Math.max(-fieldW/2 + 1.5, Math.min(fieldW/2 - 1.5, newX));
-  playerGroup.position.z = Math.max(-fieldD/2 + 1.5, Math.min(fieldD/2 - 1.5, newZ));
-
-  // Condução da bola
-  if (hasBall) {
-    const offset = moveDirection.clone().multiplyScalar(1.6);
-    ballGroup.position.x = playerGroup.position.x + offset.x;
-    ballGroup.position.z = playerGroup.position.z + offset.z;
-    ballVelocity.set(0,0,0);
+  if (move.length() > 0) {
+    const angle = Math.atan2(move.x, move.z);
+    player.rotation.y = angle;
   }
 
-  // câmera
-  camera.position.x = playerGroup.position.x;
-  camera.position.z = playerGroup.position.z + 18;
-  camera.position.y = 20;
-  camera.lookAt(playerGroup.position.x, 2, playerGroup.position.z - 6);
+  const newX = player.position.x + move.x * playerSpeed * delta;
+  const newZ = player.position.z + move.z * playerSpeed * delta;
+
+  player.position.x = Math.max(-fieldW/2 + 1.5, Math.min(fieldW/2 - 1.5, newX));
+  player.position.z = Math.max(-fieldD/2 + 1.5, Math.min(fieldD/2 - 1.5, newZ));
 }
 
 function updateBall(delta) {
-
-  const dist = playerGroup.position.distanceTo(ballGroup.position);
-
-  // pega a bola se estiver perto
-  if (dist < 2 && !hasBall) {
-    hasBall = true;
+  if (!gameActive) return;
+  
+  const dist1 = player1.position.distanceTo(ballGroup.position);
+  const dist2 = player2.position.distanceTo(ballGroup.position);
+  
+  // Verifica qual jogador está mais perto da bola
+  if (!playerWithBall) {
+    if (dist1 < 2) {
+      playerWithBall = 1;
+    } else if (dist2 < 2) {
+      playerWithBall = 2;
+    }
+  } else {
+    // Verifica se o jogador ainda está perto da bola
+    const currentDist = playerWithBall === 1 ? dist1 : dist2;
+    if (currentDist > 2.5) {
+      playerWithBall = null;
+    }
+  }
+  
+  // Condução da bola
+  if (playerWithBall === 1) {
+    const moveDir = player1.userData.moveDir || new THREE.Vector3(0, 0, -1);
+    const offset = moveDir.clone().multiplyScalar(1.8);
+    ballGroup.position.x = player1.position.x + offset.x;
+    ballGroup.position.z = player1.position.z + offset.z;
+    ballVelocity.set(0, 0, 0);
+  } else if (playerWithBall === 2) {
+    const moveDir = player2.userData.moveDir || new THREE.Vector3(0, 0, -1);
+    const offset = moveDir.clone().multiplyScalar(1.8);
+    ballGroup.position.x = player2.position.x + offset.x;
+    ballGroup.position.z = player2.position.z + offset.z;
+    ballVelocity.set(0, 0, 0);
   }
 
-  // chute
-  if (hasBall && keys["Space"]) {
-    hasBall = false;
-
-    const shootDir = moveDirection.clone();
-    if (shootDir.length() === 0) shootDir.z = -1;
-
-    shootDir.normalize();
-    shootDir.y = 0.15;
-
-    ballVelocity.copy(shootDir.multiplyScalar(30));
+  // Chutes - Jogador 1 (azul)
+  if (playerWithBall === 1) {
+    // Chute normal (F)
+    if (keys["KeyF"]) {
+      playerWithBall = null;
+      const shootDir = player1.userData.moveDir || new THREE.Vector3(0, 0, -1);
+      shootDir.normalize();
+      shootDir.y = 0.15;
+      ballVelocity.copy(shootDir.multiplyScalar(20));
+    }
+    // Chute forte (G)
+    if (keys["KeyG"]) {
+      playerWithBall = null;
+      const strongDir = player1.userData.moveDir || new THREE.Vector3(0, 0, -1);
+      strongDir.normalize();
+      strongDir.y = 0.25;
+      ballVelocity.copy(strongDir.multiplyScalar(30));
+    }
+  }
+  
+  // Chutes - Jogador 2 (vermelho) - usando Numpad1 e Numpad2
+  if (playerWithBall === 2) {
+    // Chute normal (Numpad1)
+    if (keys["Numpad1"]) {
+      playerWithBall = null;
+      const shootDir = player2.userData.moveDir || new THREE.Vector3(0, 0, -1);
+      shootDir.normalize();
+      shootDir.y = 0.15;
+      ballVelocity.copy(shootDir.multiplyScalar(20));
+    }
+    // Chute forte (Numpad2)
+    if (keys["Numpad2"]) {
+      playerWithBall = null;
+      const strongDir = player2.userData.moveDir || new THREE.Vector3(0, 0, -1);
+      strongDir.normalize();
+      strongDir.y = 0.25;
+      ballVelocity.copy(strongDir.multiplyScalar(30));
+    }
   }
 
-  // 🔥 CHUTE FORTE (X)
-// 🔥 CHUTE FORTE (X)
-if (hasBall && keys["KeyX"]) {
-  hasBall = false;
-
-  const strongDir = moveDirection.clone();
-
-  // Se estiver parado, chuta pra frente
-  if (strongDir.length() === 0) {
-    strongDir.z = -1;
-  }
-
-  strongDir.normalize();
-  strongDir.y = 0.25;
-
-  ballVelocity.copy(strongDir.multiplyScalar(55));
-}
-
-  // física normal se não estiver com a bola
-  if (!hasBall) {
+  // Física da bola
+  if (!playerWithBall) {
     ballGroup.position.addScaledVector(ballVelocity, delta);
     ballVelocity.multiplyScalar(0.98);
   }
 
-  // limites laterais
+  // Limites
   if (ballGroup.position.x < -fieldW/2 + 0.6) {
     ballGroup.position.x = -fieldW/2 + 0.6;
     ballVelocity.x *= -0.5;
@@ -391,16 +734,27 @@ if (hasBall && keys["KeyX"]) {
     ballGroup.position.x = fieldW/2 - 0.6;
     ballVelocity.x *= -0.5;
   }
+  
+  // CORREÇÃO DOS GOLS - Agora a lógica está correta
+  // GOL DO JOGADOR AZUL: quando a bola entra no gol do vermelho (z positivo)
   if (ballGroup.position.z > fieldD/2 - 0.6) {
-    ballGroup.position.z = fieldD/2 - 0.6;
-    ballVelocity.z *= -0.5;
+    if (ballGroup.position.x > -4 && ballGroup.position.x < 4) {
+      // Gol do AZUL! (marcou no gol do VERMELHO)
+      scoreBlue++;
+      scoreBlueEl.textContent = scoreBlue;
+      resetBall();
+    } else {
+      ballGroup.position.z = fieldD/2 - 0.6;
+      ballVelocity.z *= -0.5;
+    }
   }
-
-  // gol
+  
+  // GOL DO JOGADOR VERMELHO: quando a bola entra no gol do azul (z negativo)
   if (ballGroup.position.z < -fieldD/2 + 0.6) {
     if (ballGroup.position.x > -4 && ballGroup.position.x < 4) {
-      score++;
-      scoreEl.innerHTML = `${score} x 0`;
+      // Gol do VERMELHO! (marcou no gol do AZUL)
+      scoreRed++;
+      scoreRedEl.textContent = scoreRed;
       resetBall();
     } else {
       ballGroup.position.z = -fieldD/2 + 0.6;
@@ -412,39 +766,191 @@ if (hasBall && keys["KeyX"]) {
 }
 
 function resetBall() {
-  ballGroup.position.set(0, 0.9, 3);
-  ballVelocity.set(0,0,0);
+  ballGroup.position.set(0, 0.9, 0);
+  ballVelocity.set(0, 0, 0);
+  playerWithBall = null;
 }
 
-// Animação simples para as pernas
-let legAngle = 0;
+// Animação das pernas
+let legAngle1 = 0;
+let legAngle2 = 0;
+
 function animate() {
   requestAnimationFrame(animate);
   const delta = Math.min(clock.getDelta(), 0.1);
   
-  updatePlayer(delta);
-  updateBall(delta);
-  
-  // animação das pernas ao correr
-  if (keys["KeyW"] || keys["KeyS"] || keys["KeyA"] || keys["KeyD"]) {
-    legAngle += delta * 10;
-    playerGroup.children[4].rotation.x = Math.sin(legAngle) * 0.5; // perna esquerda
-    playerGroup.children[5].rotation.x = Math.sin(legAngle + Math.PI) * 0.5; // perna direita
-  } else {
-    legAngle = 0;
-    playerGroup.children[4].rotation.x = 0;
-    playerGroup.children[5].rotation.x = 0;
+  if (gameActive) {
+    // Atualiza jogadores - Jogador 1 com controles normais
+    updatePlayer(player1, {
+      up: "KeyW",
+      down: "KeyS",
+      left: "KeyA",
+      right: "KeyD"
+    }, delta);
+    
+    // Atualiza jogador 2 com controles invertidos
+    const move2 = new THREE.Vector3();
+    
+    if (keys["ArrowUp"]) move2.z += 1;
+    if (keys["ArrowDown"]) move2.z -= 1;
+    if (keys["ArrowLeft"]) move2.x += 1;
+    if (keys["ArrowRight"]) move2.x -= 1;
+
+    if (move2.length() > 0) {
+      move2.normalize();
+      player2.userData.moveDir = move2.clone();
+    }
+
+    if (move2.length() > 0) {
+      const angle = Math.atan2(move2.x, move2.z);
+      player2.rotation.y = angle;
+    }
+
+    const newX2 = player2.position.x + move2.x * playerSpeed * delta;
+    const newZ2 = player2.position.z + move2.z * playerSpeed * delta;
+
+    player2.position.x = Math.max(-fieldW/2 + 1.5, Math.min(fieldW/2 - 1.5, newX2));
+    player2.position.z = Math.max(-fieldD/2 + 1.5, Math.min(fieldD/2 - 1.5, newZ2));
   }
   
-  renderer.render(scene, camera);
+  updateBall(delta);
+  
+  // Animação das pernas - Jogador 1
+  if (gameActive && (keys["KeyW"] || keys["KeyS"] || keys["KeyA"] || keys["KeyD"])) {
+    legAngle1 += delta * 10;
+    player1.children[4].rotation.x = Math.sin(legAngle1) * 0.5;
+    player1.children[5].rotation.x = Math.sin(legAngle1 + Math.PI) * 0.5;
+  } else {
+    legAngle1 = 0;
+    player1.children[4].rotation.x = 0;
+    player1.children[5].rotation.x = 0;
+  }
+  
+  // Animação das pernas - Jogador 2
+  if (gameActive && (keys["ArrowUp"] || keys["ArrowDown"] || keys["ArrowLeft"] || keys["ArrowRight"])) {
+    legAngle2 += delta * 10;
+    player2.children[4].rotation.x = Math.sin(legAngle2) * 0.5;
+    player2.children[5].rotation.x = Math.sin(legAngle2 + Math.PI) * 0.5;
+  } else {
+    legAngle2 = 0;
+    player2.children[4].rotation.x = 0;
+    player2.children[5].rotation.x = 0;
+  }
+  
+  // Câmeras fixas atrás dos jogadores
+  // Câmera do Jogador 1 (Azul)
+  camera1.position.x = player1.position.x;
+  camera1.position.y = player1.position.y + 10;
+  camera1.position.z = player1.position.z + 18;
+  camera1.lookAt(player1.position.x, player1.position.y + 2, player1.position.z - 2);
+  
+  // Câmera do Jogador 2 (Vermelho)
+  camera2.position.x = player2.position.x;
+  camera2.position.y = player2.position.y + 10;
+  camera2.position.z = player2.position.z - 18;
+  camera2.lookAt(player2.position.x, player2.position.y + 2, player2.position.z + 2);
+  
+  // Renderização em tela dividida
+  renderer.setScissorTest(true);
+  
+  // Lado esquerdo - Câmera do Jogador 1 (Azul)
+  renderer.setViewport(0, 0, innerWidth/2, innerHeight);
+  renderer.setScissor(0, 0, innerWidth/2, innerHeight);
+  renderer.render(scene, camera1);
+  
+  // Lado direito - Câmera do Jogador 2 (Vermelho)
+  renderer.setViewport(innerWidth/2, 0, innerWidth/2, innerHeight);
+  renderer.setScissor(innerWidth/2, 0, innerWidth/2, innerHeight);
+  renderer.render(scene, camera2);
+  
+  renderer.setScissorTest(false);
 }
 animate();
 
 window.addEventListener("resize", ()=>{
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
+  camera1.aspect = (innerWidth/2)/innerHeight;
+  camera1.updateProjectionMatrix();
+  camera2.aspect = (innerWidth/2)/innerHeight;
+  camera2.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
+
+// --- FUNÇÕES DO LOBBY E TIMER ---
+function startGame() {
+  // Esconde lobby e mensagem de vencedor
+  lobby.style.display = 'none';
+  winnerMessage.style.display = 'none';
+  
+  // Reseta jogo
+  gameActive = true;
+  gameTime = 120;
+  scoreBlue = 0;
+  scoreRed = 0;
+  scoreBlueEl.textContent = '0';
+  scoreRedEl.textContent = '0';
+  updateTimerDisplay();
+  
+  // Reseta posições
+  player1.position.set(-10, 0, 20);
+  player2.position.set(10, 0, -20);
+  resetBall();
+  
+  // Inicia timer
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function endGame() {
+  gameActive = false;
+  clearInterval(timerInterval);
+  
+  // Determina vencedor
+  let winner = '';
+  let winnerClass = '';
+  
+  if (scoreBlue > scoreRed) {
+    winner = '🔵 JOGADOR AZUL';
+    winnerClass = 'winner-blue';
+  } else if (scoreRed > scoreBlue) {
+    winner = '🔴 JOGADOR VERMELHO';
+    winnerClass = 'winner-red';
+  } else {
+    winner = '⚔️ EMPATE ⚔️';
+    winnerClass = '';
+  }
+  
+  // Mostra mensagem de vencedor
+  winnerText.innerHTML = `🏆 ${winner} 🏆`;
+  winnerText.className = winnerClass;
+  winnerSubtitle.innerHTML = `${scoreBlue} x ${scoreRed}`;
+  winnerMessage.style.display = 'block';
+  
+  // Mostra lobby após 3 segundos
+  setTimeout(() => {
+    winnerMessage.style.display = 'none';
+    lobby.style.display = 'flex';
+  }, 3000);
+}
+
+function updateTimer() {
+  if (!gameActive) return;
+  
+  gameTime--;
+  updateTimerDisplay();
+  
+  if (gameTime <= 0) {
+    endGame();
+  }
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(gameTime / 60);
+  const seconds = gameTime % 60;
+  timerEl.innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Event listener do botão
+startButton.addEventListener('click', startGame);
 </script>
 </body>
 </html>
